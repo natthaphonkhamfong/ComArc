@@ -1,37 +1,19 @@
 package com.company;
-import java.util.Scanner;
+
 public class Main {
 
-    String Label[];
     public static void main(String[] args) {
-//	// write your code here
-        //System.out.println("test");
-
-
-
+	// write your code here
+        String b = "   label  Ins   RA   RB  RD   com";
+        String[] label = b.split("\\s+");
+        if (label[0] == " "){
+            System.out.println("NULL");
+        }else {
+            System.out.println(label[0] + "11");
+        }
     }
 
-    public static void x()  {
 
 
-    Scanner cin = new Scanner(System.in);
 
-
-        System.out.println("Please input command: \t");
-    String inputLabel = cin.next();
-
-    //Display
-        System.out.println("This is your command: ");
-        System.out.println(inputLabel);
 }
-    public static void y() {
-    //if(Label[1])
-
-    }
-}
-
-
-
-
-
-
