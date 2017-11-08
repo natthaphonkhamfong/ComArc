@@ -9,7 +9,8 @@ public class Assembler {
         String[] label = line.split("\\s+");
 
 
-        if (label[1] == null);
+        if (label[1] == null
+                );
 
     }
     public void instruct(String line){
