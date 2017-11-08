@@ -17,4 +17,8 @@ public class Assembler {
 
     }
 
+    public void intstruction(String ints ,String rs ,String rt ,String rd){
+        //code
+    }
+
 }
