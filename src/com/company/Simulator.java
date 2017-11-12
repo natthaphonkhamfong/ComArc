@@ -142,7 +142,9 @@ public class Simulator {
         int regA = Integer.parseInt(biStr.substring(3, 6), 2); //rs convert String to integer and convert binary to decimal
         int regB = Integer.parseInt(biStr.substring(6, 9), 2); //rt convert String to integer and convert binary to decimal
         int offsetField = Integer.parseInt(biStr.substring(9, 25) , 2); //offsetField convert String to integer and convert binary to decimal
-        memmory.set(register[regA + offsetField], register[regB]); //memory[regA +  offsetField]  = register[regB]
+        arraysize(register[regA] + offsetField);
+        memmory.set(register[regA] + offsetField, register[regB]); //memory[regA +  offsetField]  = register[regB]
+
         tohalt(); // check halt
         regZero(); //check register[0]
     }
@@ -247,8 +249,8 @@ public class Simulator {
     public static void noopcode() throws IOException { // no instruction
         ishalt = true;
         tohalt();
-        System.out.println("error(opcode) instruction: " + pc);
-        String Strpc = Integer.toString(pc); // convert String to interger
+        System.out.println("error(opcode) instruction: " + (pc-1));
+        String Strpc = Integer.toString(pc-1); // convert String to interger
         write("error(opcode) instruction: " + Strpc);
     }
 
@@ -256,8 +258,8 @@ public class Simulator {
         if (register[0] != 0) {
             ishalt = true;
             tohalt();
-            System.out.println("error(reg0) instruction: " + pc);
-            String Strpc = Integer.toString(pc); // convert String to interger
+            System.out.println("error(reg0) instruction: " + (pc-1));
+            String Strpc = Integer.toString(pc-1); // convert String to interger
             write("error(reg0) instruction: " + Strpc);
         }
     }
@@ -267,10 +269,15 @@ public class Simulator {
         if (binary.contains(one)){
             ishalt = true;
             tohalt();
-            System.out.println("error(have bit 1)  instruction: " + pc);
-            String Strpc = Integer.toString(pc); // convert String to interger
+            System.out.println("error(have bit 1)  instruction: " + (pc-1));
+            String Strpc = Integer.toString(pc-1); // convert String to interger
             write("error(have bit 1) instruction: " + Strpc);
         }
+    }
+
+    public static void arraysize(int size){
+        for (int i = memmory.size(); i < size ; i++)
+            memmory.add(0);
     }
 
     public static int getTwosComplement(String binary) { // 2' complement
