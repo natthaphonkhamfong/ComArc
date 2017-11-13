@@ -6,24 +6,25 @@ import java.util.ArrayList;
 public class Simulator {
 
 
-    static ArrayList<Integer> memmory = new ArrayList<Integer>();
+    static ArrayList<Integer> memory = new ArrayList<Integer>();
     static int[] register = new int[8];
     static int pc = 0;
     static boolean isRun;
     static boolean ishalt;
     static int count;
-    static String FileRead = "E:\\CPE304\\Project\\ComArc\\src\\com\\company\\Simulator.txt";
+    static String FileRead = "E:\\CPE304\\Project\\ComArc\\src\\com\\company\\Multiplication_MachineCode.txt";
     static String FileWrite = "E:\\CPE304\\Project\\ComArc\\src\\com\\company\\OutputSimulator.txt";
     static BufferedWriter bw = null;
     static FileWriter fw = null;
     static PrintWriter pw = null;
+    static int NumZero;
 
 
 
     public static void main(String[] args) throws IOException {
         checkWriteFile(); //check file OutputSimulator
         read(FileRead); // read line  file Simulator
-        printmem(); // print memmory
+        printmem(); // print memory
         isRun = true; // initiate isRun
         ishalt = false; // initiate ishalt
         count = 0; //initiate count
@@ -44,7 +45,7 @@ public class Simulator {
             String Currentline;
 
             while ((Currentline = br.readLine()) != null) {
-                memmory.add(Integer.valueOf(Currentline)); // add instruction to memmory
+                memory.add(Integer.valueOf(Currentline)); // add instruction to memory
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -71,7 +72,7 @@ public class Simulator {
 
     public static void execution() throws IOException { // run program
         while (isRun) {
-            int Currentline = memmory.get(pc); // fetch
+            int Currentline = memory.get(pc); // fetch
             String biStr = Integer.toBinaryString(Currentline); //convert decimal to binary
 
             if ( biStr.length() < 25) { // do bit equal 25 bit
@@ -131,7 +132,7 @@ public class Simulator {
         int regA = Integer.parseInt(biStr.substring(3, 6), 2); //rs convert String to integer and convert binary to decimal
         int regB = Integer.parseInt(biStr.substring(6, 9), 2); //rt convert String to integer and convert binary to decimal
         int offsetField = Integer.parseInt(biStr.substring(9, 25) , 2); //offsetField  convert String to integer and convert binary to decimal
-        register[regB] = memmory.get(register[regA] + offsetField); //load[regB] = me[regA +  offsetField]
+        register[regB] = memory.get(register[regA] + offsetField); //load[regB] = me[regA +  offsetField]
         tohalt(); // check halt
         regZero(); //check register[0]
     }
@@ -143,7 +144,7 @@ public class Simulator {
         int regB = Integer.parseInt(biStr.substring(6, 9), 2); //rt convert String to integer and convert binary to decimal
         int offsetField = Integer.parseInt(biStr.substring(9, 25) , 2); //offsetField convert String to integer and convert binary to decimal
         arraysize(register[regA] + offsetField);
-        memmory.set(register[regA] + offsetField, register[regB]); //memory[regA +  offsetField]  = register[regB]
+        memory.set(register[regA] + offsetField, register[regB]); //memory[regA +  offsetField]  = register[regB]
 
         tohalt(); // check halt
         regZero(); //check register[0]
@@ -226,13 +227,20 @@ public class Simulator {
         }
     }
 
-    public static void printmem() throws IOException { // print value in memmory
-        for (int i=0 ; i < memmory.size() ;i++){
-            System.out.println("\t\tmemory["+ i + "]=" + memmory.get(i));
-            String StrI =  Integer.toString(i);
-            String StrMem = Integer.toString(memmory.get(i));
-            String print = "\t\tmemory["+ StrI + "]=" + StrMem;
-            write(print);
+    public static void printmem() throws IOException { // print value in memory
+        for (int i = 0; i < memory.size() ; i++){
+            if (memory.get(i) == 0) {
+                NumZero++;
+            }else{
+                NumZero = 0;
+            }
+            if (NumZero < 10) {
+                System.out.println("\t\tmemory[" + i + "]=" + memory.get(i));
+                String StrI = Integer.toString(i);
+                String StrMem = Integer.toString(memory.get(i));
+                String print = "\t\tmemory[" + StrI + "]=" + StrMem;
+                write(print);
+            }
         }
     }
 
@@ -276,8 +284,8 @@ public class Simulator {
     }
 
     public static void arraysize(int size){
-        for (int i = memmory.size(); i < size ; i++)
-            memmory.add(0);
+        for (int i = memory.size(); i < size + 1 ; i++)
+            memory.add(0);
     }
 
     public static int getTwosComplement(String binary) { // 2' complement
