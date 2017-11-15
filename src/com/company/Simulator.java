@@ -5,25 +5,22 @@ import java.util.ArrayList;
 
 public class Simulator {
 
-
-    static ArrayList<Integer> memmory = new ArrayList<Integer>();
+    static ArrayList<Integer> memory = new ArrayList<Integer>();
     static int[] register = new int[8];
     static int pc = 0;
-    static boolean isRun;
-    static boolean ishalt;
+    static boolean isRun , ishalt;
     static int count;
-    static String FileRead = "E:\\CPE304\\Project\\ComArc\\src\\com\\company\\Simulator.txt";
+    static String FileRead = "E:\\CPE304\\Project\\ComArc\\src\\com\\company\\Multiplication_MachineCode.txt";
     static String FileWrite = "E:\\CPE304\\Project\\ComArc\\src\\com\\company\\OutputSimulator.txt";
     static BufferedWriter bw = null;
     static FileWriter fw = null;
     static PrintWriter pw = null;
-
-
+    static int NumZero , regA ,regB;
 
     public static void main(String[] args) throws IOException {
         checkWriteFile(); //check file OutputSimulator
         read(FileRead); // read line  file Simulator
-        printmem(); // print memmory
+        printmem(); // print memory
         isRun = true; // initiate isRun
         ishalt = false; // initiate ishalt
         count = 0; //initiate count
@@ -42,9 +39,8 @@ public class Simulator {
     public static void read(String file) { // read file
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String Currentline;
-
             while ((Currentline = br.readLine()) != null) {
-                memmory.add(Integer.valueOf(Currentline)); // add instruction to memmory
+                memory.add(Integer.valueOf(Currentline)); // add instruction to memory
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -71,7 +67,7 @@ public class Simulator {
 
     public static void execution() throws IOException { // run program
         while (isRun) {
-            int Currentline = memmory.get(pc); // fetch
+            int Currentline = memory.get(pc); // fetch
             String biStr = Integer.toBinaryString(Currentline); //convert decimal to binary
 
             if ( biStr.length() < 25) { // do bit equal 25 bit
@@ -83,6 +79,10 @@ public class Simulator {
 
             String instruction = biStr.substring(0, 3); // select opcode
 
+            pc++; // fetch
+            count++; // number state
+
+            setReg(biStr); // set value regA and regB
             if (instruction.equals("000")) add(biStr); // check opcode equal add ?
             else if (instruction.equals("001")) nand(biStr);  // check opcode equal nand ?
             else if (instruction.equals("010")) lw(biStr);  // check opcode equal lw ?
@@ -93,100 +93,71 @@ public class Simulator {
             else if (instruction.equals("111")) noop(biStr);  // check opcode equal noop ?
             else noopcode(); // no instruction for this opcode
 
+            regZero(); //check register[0]
             printEnd(); // print machine halted
-
         }
     }
 
     public static void add(String biStr) throws IOException { // instruction add $regDst = $regA & $regB
-        pc++; // fetch
-        count++; // number state
-        int regA = Integer.parseInt(biStr.substring(3, 6), 2); //rs convert String to integer and convert binary to decimal
-        int regB = Integer.parseInt(biStr.substring(6, 9), 2); //rt convert String to integer and convert binary to decimal
         String offsetField = biStr.substring(9, 22);
         isOne(offsetField); // check have offsetField bit 1
         int regDst = Integer.parseInt(biStr.substring(22, 25) ,2); //rd convert String to integer and convert binary to decimal
         register[regDst] = register[regA] + register[regB]; // rd = rs+ rt
         tohalt(); // check halt
-        regZero(); //check register[0]
     }
 
     public static void nand(String biStr) throws IOException { // instruction  nand $regDst = !($regA & $regB)
-        pc++; // fetch
-        count++; // number state
-        int regA = Integer.parseInt(biStr.substring(3, 6), 2); //rs convert String to integer and convert binary to decimal
-        int regB = Integer.parseInt(biStr.substring(6, 9), 2); //rt convert String to integer and convert binary to decimal
         String offsetField = biStr.substring(9, 22);
         isOne(offsetField); // check have offsetField bit 1
         int regDst = Integer.parseInt(biStr.substring(22, 25), 2); //rd convert String to integer and convert binary to decimal
         register[regDst] = ~(register[regA] & register[regB]); //rd = rs nand rt
         tohalt(); // check halt
-        regZero(); //check register[0]
     }
 
 
     public static void lw(String biStr) throws IOException { // instruction lw $regB offsetField($regA)
-        pc++; // fetch
-        count++; // number state
-        int regA = Integer.parseInt(biStr.substring(3, 6), 2); //rs convert String to integer and convert binary to decimal
-        int regB = Integer.parseInt(biStr.substring(6, 9), 2); //rt convert String to integer and convert binary to decimal
         int offsetField = Integer.parseInt(biStr.substring(9, 25) , 2); //offsetField  convert String to integer and convert binary to decimal
-        register[regB] = memmory.get(register[regA] + offsetField); //load[regB] = me[regA +  offsetField]
+        register[regB] = memory.get(register[regA] + offsetField); //load[regB] = me[regA +  offsetField]
         tohalt(); // check halt
-        regZero(); //check register[0]
     }
 
     public static void sw(String biStr) throws IOException { // instruction sw $regB offsetField($regA)
-        pc++; // fetch
-        count++; // number state
-        int regA = Integer.parseInt(biStr.substring(3, 6), 2); //rs convert String to integer and convert binary to decimal
-        int regB = Integer.parseInt(biStr.substring(6, 9), 2); //rt convert String to integer and convert binary to decimal
         int offsetField = Integer.parseInt(biStr.substring(9, 25) , 2); //offsetField convert String to integer and convert binary to decimal
         arraysize(register[regA] + offsetField);
-        memmory.set(register[regA] + offsetField, register[regB]); //memory[regA +  offsetField]  = register[regB]
-
+        memory.set(register[regA] + offsetField, register[regB]); //memory[regA +  offsetField]  = register[regB]
         tohalt(); // check halt
-        regZero(); //check register[0]
     }
     public static void beq(String biStr) throws IOException { // instruction beq $regA $regB offsetField
-        pc++; // fetch
-        count++; // number state
-        int regA = Integer.parseInt(biStr.substring(3, 6), 2); //rs convert String to integer and convert binary to decimal
-        int regB = Integer.parseInt(biStr.substring(6, 9), 2); //rt convert String to integer and convert binary to decimal
         int offsetField = getTwosComplement(biStr.substring(9, 25)); // offsetField convert String to integer and convert binary to decimal
 
         if (register[regA] == register[regB]){ // $regA = $regB
             pc = pc +  offsetField;  //jump label pc
         }
-
         tohalt(); // check halt
-        regZero(); //check register[0]
     }
 
     public static void jalr(String biStr) throws IOException { // instruction jalr $regA
-        pc++; // fetch
-        count++; // number state
-        int regA = Integer.parseInt(biStr.substring(3, 6), 2); //rs convert String to integer and convert binary to decimal
-        int regB = Integer.parseInt(biStr.substring(6, 9), 2); //rt convert String to integer and convert binary to decimal
         String offsetField = biStr.substring(9, 25);
         isOne(offsetField); // check have offsetField bit 1
 
         register[regB] = pc; // $regB = pc
         pc = register[regA]; // jump $regA
+
         tohalt(); // check halt
-        regZero(); //check register[0]
     }
     public static void halt(String biStr) throws IOException { // instruction fetch but stop program
-        pc++; // fetch
-        count++; // number state
         String offsetField = biStr.substring(3, 25);
         isOne(offsetField); // check offsetField have bit 1
         ishalt = true;
     }
     public static void noop(String biStr) throws IOException { // no instruction and no fetch
-        count++;
         String offsetField = biStr.substring(3, 25);
         isOne(offsetField); // check have offsetField bit 1
+    }
+
+    public static void setReg(String biStr){
+         regA = Integer.parseInt(biStr.substring(3, 6), 2); //rs convert String to integer and convert binary to decimal
+         regB = Integer.parseInt(biStr.substring(6, 9), 2); //rt convert String to integer and convert binary to decimal
     }
 
     public static void tohalt(){
@@ -226,13 +197,20 @@ public class Simulator {
         }
     }
 
-    public static void printmem() throws IOException { // print value in memmory
-        for (int i=0 ; i < memmory.size() ;i++){
-            System.out.println("\t\tmemory["+ i + "]=" + memmory.get(i));
-            String StrI =  Integer.toString(i);
-            String StrMem = Integer.toString(memmory.get(i));
-            String print = "\t\tmemory["+ StrI + "]=" + StrMem;
-            write(print);
+    public static void printmem() throws IOException { // print value in memory
+        for (int i = 0; i < memory.size() ; i++){
+            if (memory.get(i) == 0) {
+                NumZero++;
+            }else{
+                NumZero = 0;
+            }
+            if (NumZero < 10) {
+                System.out.println("\t\tmemory[" + i + "]=" + memory.get(i));
+                String StrI = Integer.toString(i);
+                String StrMem = Integer.toString(memory.get(i));
+                String print = "\t\tmemory[" + StrI + "]=" + StrMem;
+                write(print);
+            }
         }
     }
 
@@ -276,8 +254,8 @@ public class Simulator {
     }
 
     public static void arraysize(int size){
-        for (int i = memmory.size(); i < size ; i++)
-            memmory.add(0);
+        for (int i = memory.size(); i < size + 1 ; i++)
+            memory.add(0);
     }
 
     public static int getTwosComplement(String binary) { // 2' complement
@@ -294,7 +272,6 @@ public class Simulator {
         }
     }
 
-
     public static String invertDigits(String binary) { // 1' complement
         String result = binary;
         result = result.replace("0", " "); //temp replace 0s
@@ -302,5 +279,4 @@ public class Simulator {
         result = result.replace(" ", "1"); //put the 1s back in
         return result;
     }
-
 }
