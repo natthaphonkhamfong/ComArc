@@ -10,7 +10,7 @@ public class Simulator {
     static int pc = 0;
     static boolean isRun , ishalt;
     static int count;
-    static String FileRead = "E:\\CPE304\\Project\\ComArc\\src\\com\\company\\Multiplication_MachineCode.txt";
+    static String FileRead = "E:\\CPE304\\Project\\ComArc\\src\\com\\company\\OutputAssembly.txt";
     static String FileWrite = "E:\\CPE304\\Project\\ComArc\\src\\com\\company\\OutputSimulator.txt";
     static BufferedWriter bw = null;
     static FileWriter fw = null;

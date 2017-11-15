@@ -1,5 +1,6 @@
 package com.company;
 
+import java.util.regex.Pattern;
 import java.io.*;
 import java.util.ArrayList;
 
@@ -7,22 +8,53 @@ public class Assembler {
 
     int l = 0; // number of line start at 0
 
-    private String inst, rs, rt, rd;
-    static String FileRead = "E:\\assembly.txt";
-    //static String FileWrite = "E:\\CPE304\\Project\\ComArc\\src\\com\\company\\OutputSimulator.txt";
+    static String FileRead = "E:\\CPE304\\Project\\ComArc\\src\\com\\company\\Assembly.tx" +
+            "t";
+    static String FileWrite = "E:\\CPE304\\Project\\ComArc\\src\\com\\company\\OutputAssembly.txt";
     static ArrayList<String> label = new ArrayList<String>();
     static ArrayList<Integer> valueOflabel = new ArrayList<Integer>();
     static ArrayList<String> memory = new ArrayList<String>();
-    private static boolean isRun;
-    private static int pc;
-    static boolean checkIsLabel; // check ว่า lebel นี่มีอยู่ไหม
-    static int result ;
+    private static boolean isRun ,isbeq;
+    private static int pc, result;
+    static String pattern = "^[\\-]?\\d*$";
+    static BufferedWriter bw = null;
+    static FileWriter fw = null;
+    static PrintWriter pw = null;
 
-    public static void main(String[] args) {
-        read("E:\\CPE304\\Project\\ComArc\\src\\com\\company\\assembly.txt");
+
+    public static void main(String[] args) throws IOException {
+        checkWriteFile();
+        read(FileRead);
         isRun = true;
         pc = 0;
         Assembler();
+    }
+
+    public static void checkWriteFile(){ //delete FileWrite
+        try{
+            File file = new File(FileWrite);
+            file.delete();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void write(String Currentline) throws IOException { // write Currentline in FileWrite
+        try {
+            fw = new FileWriter(FileWrite, true);
+            bw = new BufferedWriter(fw);
+            pw = new PrintWriter(bw);
+
+            pw.println(Currentline);
+            pw.flush();
+        }finally {
+            try {
+                pw.close();
+                bw.close();
+                fw.close();
+            } catch (IOException io){
+            }
+        }
     }
 
     public static void read(String file) { // read file
@@ -36,47 +68,51 @@ public class Assembler {
         }
     }
 
-    public static void Assembler(){
+    public static void Assembler() throws IOException {
         checklabel();
-        while (isRun) {
-            if (checkIsLabel == false) break;
+        for (int i=0; i<memory.size(); i++) {
+            //if (checkIsLabel == false) break;
+            isbeq = false;
+            if (!isRun) break;
             String CurrentLine = memory.get(pc);
             String[] field = CurrentLine.split("\\s+"); // split white space
-
             pc++;
-            result = 0;
 
-            if (field[1].equals(".fll")) setFill(field[2]);
-            else setInst(field[1], field[2], field[3], field[4]);
+            if (field[1].equals(".fill")) {
+                setFill(field[2]);
+            }else if (field[1].equals("noop") || field[1].equals("halt")) {
+                setOtype(field[1]);
+            }else{
+                setInst(field[1]);
+            }
 
             print();
+            result = 0;
         }
     }
 
     private static void checklabel() {
         int count = 0;
         for (int j=0; j<memory.size(); j++,count++) {
-            checkIsLabel = false;
             String CurrentLine = memory.get(count);
             String[] field = CurrentLine.split("\\s+"); // split white space
             int checklabel = 0;
             if (!field[0].isEmpty()) { //check is Label?
                 if (field[1].equals(".fll")) { // check is Fill?
                     label.add(field[0]);
-                    if (field[2].equals("-?\\d+")) { //เช็คว่าเป็นตัวเลขไหม
+                    if (Pattern.matches(pattern, field[2])) { //เช็คว่าเป็นตัวเลขไหม
                         valueOflabel.add(convertStritoInt(field[2]));
                     }else {
                         for (int i = 0; i < label.size(); i++) {
                             if (field[2].equals(label.get(i))) {
                                 valueOflabel.add(valueOflabel.get(i));
-                                checkIsLabel = true;
+                                isRun = false;
                             }
                             if (field[0].equals(label.get(i))){
-                                checkIsLabel = false;
                                 System.out.println( "label is exist" + field[0]);
                             }
                         }
-                        if (checkIsLabel == false){
+                        if (isRun == false){
                             System.out.println("error label" + field[0] + " does not exist" + field[2]);
                         }
                     }
@@ -89,66 +125,96 @@ public class Assembler {
     }
 
     private static void setFill(String field) {
-        result = convertStritoInt(field);
+        if (Pattern.matches(pattern, field)) {
+            result = convertStritoInt(field);
+        } else {
+            for (int i=0; i<label.size(); i++){
+                if (field.equals(label.get(i))) {
+                    result = valueOflabel.get(i);
+                }
+            }
+        }
     }
 
-    public static void setInst(String inst, String field0 ,String field1 ,String field2) {
-        String binary = "";
+    public static void setInst(String inst) {
+        String CurrentLine = memory.get(pc-1);
+        String[] field = CurrentLine.split("\\s+"); // split white space
         if(inst.equals("add")){
-            binary = "000";
+            Rtype("000", field[2], field[3] ,field[4]);
         }
 
         else if (inst.equals("nand")){
-            binary = "001";
+            Rtype("001", field[2], field[3] ,field[4]);
         }
 
-        else if (inst == "lw"){
-            binary = "010";
+        else if (inst.equals("lw")){
+            Itype("010", field[2], field[3] ,field[4]);
         }
 
         else if (inst.equals("sw")){
-            binary = "011";
+            Itype("011", field[2], field[3] ,field[4]);
         }
         else if (inst.equals("beq")){
-            binary = "100";
+            isbeq = true;
+            Itype("100", field[2], field[3] ,field[4]);
         }
 
         else if (inst.equals("jalr")){
-            binary = "101";
+            Jtype("101", field[2], field[3] );
         }
-
-        else if (inst.equals("halt")){
-            binary = "110";
-        }
-
-        else if (inst.equals("noop")){
-            binary = "000";
-        }
-
-        String regA = Integer.toBinaryString(convertStritoInt(field0)); // convert decimal to binary
-        String regB = Integer.toBinaryString(convertStritoInt(field1)); // convert decimal to binary
-        String regDst = "";
-        if (field2.equals("\\d")) {
-            regDst = Integer.toBinaryString(convertStritoInt(field2)); // convert decimal to binary
-        }else{
-            for (int i=0 ; i<label.size(); i++)
-                if (field2.equals(label.get(i))) {
-                    int valueDst = valueOflabel.get(i); // โหลดค่าจาก label
-                    regDst = Integer.toBinaryString(valueDst); // convert decimal to binary
-                }
-        }
-
-        if (regDst.equals("")){
-            isRun = false;
-            System.out.println("error field2 " + field2 + " does not exist");
-        }
-
-        String temp = binary + regA + regB + regDst ;
-        result = Integer.parseInt(temp ,2); // convert binary to decimal
-
     }
 
-    private static void print(){
+    private static void setOtype(String field){
+        if (field.equals("halt")) {
+            Otype("110");
+        }else if (field.equals("noop")){
+            Otype("111");
+        }
+    }
+
+    private static void Rtype(String opcpde, String field0 ,String field1, String field2){
+        String regA = setReg(field0); //rs
+        String regB = setReg(field1); //rt
+        String regDst = setReg(field2); //rd
+        String binary = opcpde + regA + regB + "0000000000000" + regDst;
+        result = Integer.parseInt(binary ,2);
+    }
+
+    private static void Itype(String opcpde, String field0 ,String field1, String field2){
+        int temp = 0;
+        String regA = setReg(field0); //rs
+        String regB = setReg(field1); //rt
+        String offsetField = "";
+        if (isbeq) {
+            if (Pattern.matches(pattern, field2)) {
+                offsetField =setOffsetField(field2);
+            } else {
+                temp = setVariable(field2);
+                temp = temp - pc;
+                offsetField = setOffsetField(Integer.toString(temp));
+            }
+        }else {
+            offsetField = setOffsetField(field2);
+        }
+
+        String binary = opcpde + regA + regB + offsetField;
+        result = Integer.parseInt(binary ,2);
+    }
+
+    private static void Jtype(String opcpde, String field0 ,String field1){
+        String regA = setReg(field0); //rs
+        String regB = setReg(field1); //rd
+        String binary = opcpde + regA + regB + "0000000000000000";
+        result = Integer.parseInt(binary ,2);
+    }
+
+    private static void Otype(String opcpde){
+        String binary = opcpde + "0000000000000000000000" ;
+        result = Integer.parseInt(binary ,2);
+    }
+
+    private static void print() throws IOException {
+        write(Integer.toString(result));
         System.out.println(result);
     }
 
@@ -156,8 +222,63 @@ public class Assembler {
         return Integer.parseInt(field); // return convert int
     }
 
+    private static int setVariable(String field){
+        for (int i=0 ; i<label.size(); i++)
+            if (field.equals(label.get(i))) {
+                return valueOflabel.get(i); // โหลดค่าจาก label
+            }
+
+        //not find in label
+        System.out.println("does not exist variable " + field);
+        isRun =false;
+        return 0;
+    }
+
+    private static String  setRegDst(String field){
+        if (Pattern.matches(pattern, field)) {
+            return Integer.toBinaryString(convertStritoInt(field)); // convert decimal to binary
+        }else{
+            int temp =  setVariable(field);
+            if (temp >7 || temp < 0){
+                isRun =false;
+                System.out.println("register has already 0-7");
+                return "";
+            }
+            return Integer.toBinaryString(temp);
+        }
+    }
 
 
+    private static String setOffsetField(String field){
+        int test=0;
+        if (Pattern.matches(pattern, field)) {
+            test = Integer.valueOf(field);
+        } else {
+            test = setVariable(field);
+        }
+        if (test > 32767 || test < -32768) {
+            isRun = false;
+            System.out.println("error offsetField more than 16 bit");
+        }
+
+        String offsetField = Integer.toBinaryString(test);
+        if (test < 0) {
+            return offsetField.substring(16, 32);
+        }else {
+            for (int i=offsetField.length(); i<16; i++){
+                offsetField = "0" + offsetField;
+            }
+            return offsetField;
+        }
+    }
+
+    private static String setReg(String field){
+        int test = Integer.valueOf(field);
+        String temp = Integer.toBinaryString(convertStritoInt(field)); // convert decimal to binary
+        if (test == 0 || test == 1) return "00"+ temp ;
+        else if (test == 2 || test == 3) return "0" + temp;
+        else return temp;
+    }
 
 }
 
