@@ -8,9 +8,8 @@ public class Assembler {
 
     int l = 0; // number of line start at 0
 
-    static String FileRead = "E:\\CPE304\\Project\\ComArc\\src\\com\\company\\Assembly.tx" +
-            "t";
-    static String FileWrite = "E:\\CPE304\\Project\\ComArc\\src\\com\\company\\OutputAssembly.txt";
+    static String FileRead = "C:\\Users\\Nattawut Khamchai\\IdeaProjects\\โปรเจค\\src\\com\\company\\assembly.txt";
+    static String FileWrite = "C:\\Users\\Nattawut Khamchai\\IdeaProjects\\โปรเจค\\src\\com\\company\\OutputAssembly.txt";
     static ArrayList<String> label = new ArrayList<String>();
     static ArrayList<Integer> valueOflabel = new ArrayList<Integer>();
     static ArrayList<String> memory = new ArrayList<String>();
@@ -91,38 +90,46 @@ public class Assembler {
         }
     }
 
-    private static void checklabel() {
-        int count = 0;
-        for (int j=0; j<memory.size(); j++,count++) {
-            String CurrentLine = memory.get(count);
-            String[] field = CurrentLine.split("\\s+"); // split white space
-            int checklabel = 0;
-            if (!field[0].isEmpty()) { //check is Label?
-                if (field[1].equals(".fll")) { // check is Fill?
-                    label.add(field[0]);
-                    if (Pattern.matches(pattern, field[2])) { //เช็คว่าเป็นตัวเลขไหม
-                        valueOflabel.add(convertStritoInt(field[2]));
-                    }else {
-                        for (int i = 0; i < label.size(); i++) {
-                            if (field[2].equals(label.get(i))) {
-                                valueOflabel.add(valueOflabel.get(i));
-                                isRun = false;
-                            }
-                            if (field[0].equals(label.get(i))){
-                                System.out.println( "label is exist" + field[0]);
-                            }
-                        }
-                        if (isRun == false){
-                            System.out.println("error label" + field[0] + " does not exist" + field[2]);
-                        }
-                    }
-                } else {
-                    label.add(field[0]);
-                    valueOflabel.add(count);
-                }
-            }
-        }
+    private static void checklabel(){
+       for(int i=0; i<memory.size(); i++) {
+           String CurrentLine = memory.get(i);
+           String[] field = CurrentLine.split("\\s+"); // split white space
+           if (!field[0].isEmpty()) { //check has label
+               if (field[1].equals("fill")){ // check is Fill?
+                   label.add(field[0]);
+                   if (Pattern.matches(pattern, field[2])) { //เช็คว่าเป็นตัวเลขไหม
+                       valueOflabel.add(convertStritoInt(field[2]));
+                   }else {
+                       for (int j=0; j<label.size(); j++){
+                           if (label.get(j).equals(field[2])){
+                               valueOflabel.add(valueOflabel.get(j));
+                           }else {
+                               System.out.println( "label does not exist" + field[2]);
+                               isRun = false;
+                           }
+
+                       }
+                   }
+               }else{
+                   label.add(field[0]);
+                   valueOflabel.add(i);
+               }
+               int count = 0;
+               for (int j=0; j <label.size(); j++) {
+                   count = 0;
+                   for (int k = 0; k < label.size(); k++)
+                       if (label.get(j).equals(label.get(k)))
+                           count++;
+               }
+
+               if (count >= 2){
+                   System.out.println("label already has " + field[0]);
+                   isRun = false;
+               }
+           }
+       }
     }
+
 
     private static void setFill(String field) {
         if (Pattern.matches(pattern, field)) {
