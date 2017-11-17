@@ -219,7 +219,7 @@ public class Simulator {
             System.out.println("\t\treg[" + i + "]" + register[i]);
             String StrI =  Integer.toString(i);
             String StrReg = Integer.toString(register[i]);
-            String print = "\t\tmemory["+ StrI + "]=" + StrReg;
+            String print = "\t\treg["+ StrI + "]=" + StrReg;
             write(print);
         }
     }
