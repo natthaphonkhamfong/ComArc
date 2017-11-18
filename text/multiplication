@@ -1,0 +1,17 @@
+    lw 0 2 mcand
+    lw 0 3 mplier
+    lw 0 4 pos1         #ระบุว่าอยู่ที่ bit ไหน
+start beq 7 3 done
+      nand 3 4 5
+      nand 5 5 5        #หา mplier & bit ใส่ไว้ใน 5
+      add 5 7 7
+      beq 5 0 shl
+      add 1 2 1         #บวกค่ารวมไว้ใน 1
+shl nand 4 4 5
+    add 4 4 4           #shift bit ไปทางซ้าย
+    add 2 2 2           #shift mcand ไปทางซ้าย
+    beq 0 0 start
+done halt
+pos1 .fill 1
+mcand .fill 32766
+mplier .fill 10383
