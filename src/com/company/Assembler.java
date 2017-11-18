@@ -1,6 +1,5 @@
 package com.company;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 import java.io.*;
@@ -95,7 +94,7 @@ public class Assembler {
 
     private static void checklabel() {
         String[] LabelPattern = {"start", "done", "five", "neg1", "stAddr"};
-        String [] OpcodePattern = {"lw","add","beq","noop","halt",".fill"};
+
 
 
         for (int i = 0; i < memory.size(); i++) {
@@ -117,7 +116,7 @@ public class Assembler {
                         for (int j = 0; j < label.size(); j++) {
                             if (label.get(j).equals(field[2])) {
                                 valueOflabel.add(valueOflabel.get(j));
-                            } else {
+                            } else if(!Arrays.asList(LabelPattern).contains(field[0])){
                                 System.out.println("label does not exist+ " + field[2]); //เช็คว่า Label defined?
                                 isRun = false;
                             }
@@ -135,13 +134,8 @@ public class Assembler {
                             count++;
                 }
 
-                if (!Arrays.asList(OpcodePattern).contains(field[1])) {      //Check Opcode is undefine
-                    System.out.println("Opcode is not defined.");
-                    isRun = false;
-                }
-
                 if (count >= 2) {
-                    System.out.println("label already has " + field[0]);    //Check label does exists
+                    System.out.println(field[0] + "  label already has." );    //Check label does exists
                     isRun = false;
                 }
             }
@@ -164,6 +158,8 @@ public class Assembler {
     public static void setInst(String inst) {              //Convert each instruction to opcode
         String CurrentLine = memory.get(pc - 1);
         String[] field = CurrentLine.split("\\s+");         // split white space
+        String[] OpcodePattern = {"add","nand","lw","sw","beq","jarl","halt","noop",".fill"};  //Opcode Pattern for this PC
+
         if (inst.equals("add")) {
             Rtype("000", field[2], field[3], field[4]);
         } else if (inst.equals("nand")) {
@@ -177,8 +173,14 @@ public class Assembler {
             Itype("100", field[2], field[3], field[4]);
         } else if (inst.equals("jalr")) {
             Jtype("101", field[2], field[3]);
+
+        } else if(!Arrays.asList(OpcodePattern).contains(inst)) {      //Check Opcode is undefine
+            System.out.println("Opcode is not define ---> " + inst);
+            isRun = false;
         }
+
     }
+
 
     private static void setOtype(String field) {            //Set opcode of halt & noop
         if (field.equals("halt")) {
