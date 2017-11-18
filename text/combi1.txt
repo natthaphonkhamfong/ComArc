@@ -1,0 +1,44 @@
+	lw	0	1	n
+	lw	0	2	r
+	lw	0	6	combi	
+	jalr	6	7
+	halt
+nCk	beq	1	2	return1
+	beq	2	0	return1
+	lw	0	6	pos1
+	add	5	6	5	stack+4
+	sw	5	7	stack	store ra
+	add	5	6	5
+	sw	5	1	stack	store n
+	add	5	6	5
+	sw	5	2	stack	store r
+	add	5	6	5
+	lw	0	6	neg1
+	add	1	6	1	n-1
+	lw	0	6	combi	
+	jalr	6	7		combin(n-1,r)
+	sw	5	3	stack	store combin(n-1,r)
+	lw	0	6	neg1
+	add	2	6	2	r-1
+	lw	0	6	combi	
+	jalr	6	7		combin(n-1,r-1)
+	lw	5	4	stack	load combin(n-1,r)
+	add	4	3	3
+	lw	0	6	neg1
+	add	5	6	5
+	lw	5	2	stack	load r
+	add	5	6	5
+	lw	5	1	stack	load n
+	add	5	6	5
+	lw	5	7	stack	load ra
+	add	5	6	5	stack-4
+	jalr	7	6
+return1	lw	0	3	pos1
+	jalr	7	6
+pos1	.fill	1
+neg1	.fill	-1
+n	.fill	7
+r	.fill	3
+combi	.fill	nCk
+check	.fill	check1
+stack	.fill	0
