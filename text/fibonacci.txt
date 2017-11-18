@@ -1,0 +1,38 @@
+	lw	0   	1   	n	$1=memory[n]
+	lw	0	2	pos1	$2=1
+    	lw	0   	6 	fibonac	prepare to call fibo. $6=fibo
+    	jalr 	6	7		call fibo; $7=return address; $3=answer
+    	halt
+fibo    beq 	1   	2   	return1	if $1=$2 goto return1
+        beq 	1   	0   	return1 if $1=0 goto return1
+        lw  	0   	6   	pos1	$6=1
+        add 	5   	6   	5	add stack+1
+        sw  	5   	7   	stack	store return address
+        add 	5   	6   	5	add stack+1
+        sw  	5   	1   	stack	store n
+        add 	5   	6   	5	add stack+1
+        lw  	0   	6   	neg1	$6=-1
+        add 	1   	6   	1	n=n-1
+        lw  	0   	6   	fibonac	prepare to call fibo. $6=fibo
+        jalr  	6   	7		call fibo(n-1); $7=return address; $3=answer
+        sw  	5   	3   	stack	store $3=fibo(n-1)
+        lw 	0   	6   	neg1	$6=-1
+        add 	1   	6   	1	n=n-2
+        lw  	0   	6   	fibonac	prepare to call fibo. $6=fibo
+        jalr    6   	7		call fibo(n-2); $7=return address; $3=answer
+        lw  	5   	4   	stack	load fibo(n-2)=$4
+        add 	4   	3   	3	add new value and old value
+        lw  	0   	6   	neg1	$6=-1
+        add 	5   	6   	5	sub stack-1
+        lw  	5   	1   	stack	load n
+        add 	5   	6   	5	sub stack-1
+        lw  	5   	7   	stack	load return address
+        add 	5  	6   	5	sub stack-1
+        jalr    7   	6		return.
+return1	lw  	0   	3   	pos1	$3=1
+    	jalr    7   	6		return.
+n 	.fill 	6
+fibonac .fill 	fibo
+pos1    .fill 	1
+neg1 	.fill 	-1
+stack 	.fill 	0
