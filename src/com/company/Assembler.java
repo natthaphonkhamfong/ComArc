@@ -10,8 +10,8 @@ public class Assembler {
 
     int l = 0; // number of line start at 0
 
-    static String FileRead = "C:\\Users\\Nattawut Khamchai\\IdeaProjects\\โปรเจค\\src\\com\\company\\assembly.txt";
-    static String FileWrite = "C:\\Users\\Nattawut Khamchai\\IdeaProjects\\โปรเจค\\src\\com\\company\\OutputAssembly.txt";
+    static String FileRead = "text\\assembly.txt";
+    static String FileWrite = "text\\OutputAssembly.txt";
     static ArrayList<String> label = new ArrayList<String>();
     static ArrayList<Integer> valueOflabel = new ArrayList<Integer>();
     static ArrayList<String> memory = new ArrayList<String>();
