@@ -8,8 +8,8 @@ public class Assembler {
 
     int l = 0; // number of line start at 0
 
-    static String FileRead = "C:\\Users\\Nattawut Khamchai\\IdeaProjects\\โปรเจค\\src\\com\\company\\assembly.txt";
-    static String FileWrite = "C:\\Users\\Nattawut Khamchai\\IdeaProjects\\โปรเจค\\src\\com\\company\\OutputAssembly.txt";
+    static String FileRead = "text\\combination.txt";
+    static String FileWrite = "text\\OutputAssembly.txt";
     static ArrayList<String> label = new ArrayList<String>();
     static ArrayList<Integer> valueOflabel = new ArrayList<Integer>();
     static ArrayList<String> memory = new ArrayList<String>();
@@ -19,7 +19,7 @@ public class Assembler {
     static BufferedWriter bw = null;
     static FileWriter fw = null;
     static PrintWriter pw = null;
-
+    static boolean stop = false;
 
     public static void main(String[] args) throws IOException {
         checkWriteFile();
@@ -72,6 +72,7 @@ public class Assembler {
         for (int i=0; i<memory.size(); i++) {
             //if (checkIsLabel == false) break;
             isbeq = false;
+            if (stop) break;
             if (!isRun) break;
             String CurrentLine = memory.get(pc);
             String[] field = CurrentLine.split("\\s+"); // split white space
@@ -95,39 +96,53 @@ public class Assembler {
            String CurrentLine = memory.get(i);
            String[] field = CurrentLine.split("\\s+"); // split white space
            if (!field[0].isEmpty()) { //check has label
-               if (field[1].equals("fill")){ // check is Fill?
-                   label.add(field[0]);
+               if (field[0].length() > 6){
+                   isRun = false;
+                   System.out.printf(field[0] + "label is more than 6 bit");
+               }
+               if (field[1].equals("fill")) { // check is Fill?
+                   if (label.contains(field[0])) {
+                       System.out.println("label already has " + field[0]);
+                       isRun = false;
+                   }else label.add(field[0]);
                    if (Pattern.matches(pattern, field[2])) { //เช็คว่าเป็นตัวเลขไหม
                        valueOflabel.add(convertStritoInt(field[2]));
-                   }else {
-                       for (int j=0; j<label.size(); j++){
-                           if (label.get(j).equals(field[2])){
+                   } else {
+                       int c = 0;
+                       for (int j = 0; j < label.size(); j++) {
+                           if (label.get(j).equals(field[2])) {
                                valueOflabel.add(valueOflabel.get(j));
-                           }else {
-                               System.out.println( "label does not exist" + field[2]);
+                               c++;
+                           }
+                           if (c == 0) {
+                               System.out.println("label undefine " + field[2]);
                                isRun = false;
                            }
 
                        }
                    }
-               }else{
-                   label.add(field[0]);
-                   valueOflabel.add(i);
-               }
-               int count = 0;
-               for (int j=0; j <label.size(); j++) {
-                   count = 0;
-                   for (int k = 0; k < label.size(); k++)
-                       if (label.get(j).equals(label.get(k)))
-                           count++;
                }
 
+               label.add(field[0]);
+               valueOflabel.add(i);
+
+           }
+       }
+        int count = 0;
+           for (int j=0; j <label.size(); j++) {
+               count = 0;
+               for (int k = 0; k < label.size(); k++) {
+                   if (label.get(j).equals(label.get(k))) {
+                       count++;
+                   }
+               }
                if (count >= 2){
-                   System.out.println("label already has " + field[0]);
+                   System.out.println("label already has " + label.get(j));
                    isRun = false;
                }
            }
-       }
+
+
     }
 
 
@@ -168,6 +183,9 @@ public class Assembler {
 
         else if (inst.equals("jalr")){
             Jtype("101", field[2], field[3] );
+        }else{
+            isRun = false;
+            System.out.println("Error not instruction ----> " + inst);
         }
     }
 
