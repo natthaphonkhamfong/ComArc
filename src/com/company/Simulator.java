@@ -10,8 +10,11 @@ public class Simulator {
     static int pc = 0;
     static boolean isRun , ishalt;
     static int count;
+//    static String FileRead = "E:\\CPE304\\Project\\ComArc\\src\\com\\company\\OutputAssembly.txt";
+//    static String FileWrite = "E:\\CPE304\\Project\\ComArc\\src\\com\\company\\OutputSimulator.txt";
     static String FileRead = "text\\OutputAssembly.txt";
     static String FileWrite = "text\\OutputSimulator.txt";
+
     static BufferedWriter bw = null;
     static FileWriter fw = null;
     static PrintWriter pw = null;
@@ -139,10 +142,8 @@ public class Simulator {
     public static void jalr(String biStr) throws IOException { // instruction jalr $regA
         String offsetField = biStr.substring(9, 25);
         isOne(offsetField); // check have offsetField bit 1
-
         register[regB] = pc; // $regB = pc
         pc = register[regA]; // jump $regA
-
         tohalt(); // check halt
     }
     public static void halt(String biStr) throws IOException { // instruction fetch but stop program
